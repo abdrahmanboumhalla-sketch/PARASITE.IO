@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parasite.io - BATTLE MODE</title>
+    <link rel="icon" type="image/png" href="skin2.png">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #010816; font-family: 'Segoe UI', sans-serif; }
+        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* UI Overlay */
+        #ui-overlay {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 100; text-align: center; pointer-events: none;
+        }
+
+        #battle-timer {
+            background: rgba(0, 0, 0, 0.8); color: #00ffff; padding: 10px 30px;
+            border-radius: 15px; border: 2px solid #00ffff; font-size: 32px;
+            font-weight: 900; display: inline-block; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        #warning-text {
+            color: #ff4444; font-size: 30px; font-weight: 900; margin-top: 15px;
+            display: none; text-shadow: 0 0 15px #ff0000; animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink { 0% {opacity:1} 50% {opacity:0.2} 100% {opacity:1} }
+
+        #end-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 12, 27, 0.95); display: none;
+            flex-direction: column; justify-content: center; align-items: center; z-index: 10000;
+
+        }
+
+    </style>
+
+
+
+
+
+
+<style>
+
+
+
+
+
+
+
+#revive-btn {
+    background: linear-gradient(135deg, #00ff88 0%, #00bdff 100%);
+    color: #020c1b;
+    border: none;
+    padding: 20px 50px;
+    font-size: 24px;
+    font-weight: 900;
+    border-radius: 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    
+    /* The Glow Effect */
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4), 
+                inset 0 0 10px rgba(255, 255, 255, 0.5);
+    
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: button-pulse 2s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover State: Makes it grow and glow brighter */
+#revive-btn:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.6);
+    filter: brightness(1.1);
+}
+
+/* Active State: Shrinks when clicked */
+#revive-btn:active {
+    transform: scale(0.95);
+}
+
+/* The Pulse Animation */
+@keyframes button-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(0, 255, 136, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+        /* Container for the full-screen overlay */
+    #death-screen, #pause-screen {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(2, 12, 27, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    /* The box containing the text and buttons */
+    .ui-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+    }
+
+    /* Button Layout */
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    /* Green Revive/Resume Button */
+    .primary-btn {
+        background: #00ff88;
+        color: #020c1b;
+        border: none;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .primary-btn:hover {
+        transform: scale(1.05);
+        background: #00db75;
+    }
+
+    /* Red/Transparent Quit Button */
+    .secondary-btn {
+        background: #ff4444;
+        color: white;
+        border: 2px solid #ff4444;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 40px;
+        width: 250px;
+        height: 60px;
+        transition: 0.2s ease-in-out;  
+      }
+
+    .secondary-btn:hover {
+        background: transparent;
+        color: #ff4444;
+        transform: scale(1.2);
+
+    }
+
+
+
+
+/* De waarschuwing (flitsend) */
+.active-flash {
+    animation: pulse-red 0.5s infinite alternate;
+}
+
+@keyframes pulse-red {
+    from { opacity: 1; transform: scale(1); color: #ff3333; }
+    to { opacity: 0.5; transform: scale(1.1); color: #00ffff; }
+}
+
+/* Forceer rode timer */
+#battle-timer.danger {
+    color: #ff3333 !important;
+    text-shadow: 0 0 15px rgba(255, 51, 51, 0.8);
+    border: 2px solid #ff3333 !important;
+}
+
+    /* Flash effect voor de klap */
+    .flash-white {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: white; z-index: 100001; opacity: 0; pointer-events: none;
+    }
+    .do-flash { animation: flash-anim 0.5s ease-out; }
+    @keyframes flash-anim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* De Mist Spray (Radial) */
+    #spray-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle, rgba(0,242,255,0) 20%, rgba(0,242,255,0.8) 100%);
+        z-index: 10000; opacity: 0; transition: opacity 2s ease-in; pointer-events: none;
+    }
+
+    #end-screen {
+        display: none; position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%); width: 400px;
+        background: rgba(5, 15, 25, 0.98); border: 2px solid #00f2ff;
+        border-radius: 15px; padding: 30px; color: white;
+        text-align: center; z-index: 100005; font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 0 50px rgba(0, 242, 255, 0.3);
+    }
+
+    .top-5-list { margin: 20px 0; text-align: left; }
+    .rank-item {
+        display: flex; justify-content: space-between;
+        padding: 10px; border-bottom: 1px solid rgba(0,242,255,0.1);
+    }
+    .rank-item.is-me { color: #00f2ff; background: rgba(0,242,255,0.1); border-radius: 5px; }
+
+    .leave-btn {
+        width: 100%; padding: 15px; margin-top: 20px;
+        background: #00f2ff; color: black; border: none;
+        font-weight: bold; border-radius: 8px; cursor: pointer;
+        transition: 0.3s; text-transform: uppercase;
+    }
+    .leave-btn:hover { background: white; box-shadow: 0 0 20px #00f2ff; transform: scale(1.02); }
+</style>
+
+
+
+
+
+
+
+
+
+<style>
+    /* De Spray: Mist die van buiten naar binnen trekt */
+    #spray-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle, transparent 20%, rgba(0, 255, 255, 0.7) 100%);
+        z-index: 9999; opacity: 0; pointer-events: none;
+        transition: opacity 1.5s ease-in;
+    }
+
+    /* Het nieuwe, BREDE eindscherm */
+    #end-screen {
+        display: none;
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 800px; /* Lekker breed zoals je wilde */
+        background: rgba(2, 10, 20, 0.95);
+        border: 4px solid #00f2ff;
+        border-radius: 0px; /* Strakke rechthoekige look */
+        padding: 40px;
+        color: white;
+        z-index: 10000;
+        box-shadow: 0 0 100px rgba(0, 242, 255, 0.4);
+        font-family: 'Arial Black', sans-serif;
+        flex-direction: column;
+    }
+
+    #end-screen h1 {
+        font-size: 60px; margin: 0; color: #00f2ff;
+        text-align: center; font-style: italic; text-transform: uppercase;
+        border-bottom: 2px solid #00f2ff; padding-bottom: 10px;
+    }
+
+    /* Leaderboard Tabel */
+    .top-5-list {
+        margin: 30px 0;
+        width: 100%;
+    }
+
+    .rank-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 20px;
+        margin: 5px 0;
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 24px;
+        border-left: 5px solid transparent;
+    }
+
+    .rank-item.is-me {
+        background: rgba(0, 242, 255, 0.2);
+        border-left: 5px solid #00f2ff;
+        color: #00f2ff;
+    }
+
+    /* Score Footer */
+    #my-final-stat {
+        font-size: 28px;
+        text-align: center;
+        background: #00f2ff;
+        color: black;
+        padding: 15px;
+        margin-top: 10px;
+        text-transform: uppercase;
+    }
+
+    .leave-btn {
+        width: 100%; height: 70px; margin-top: 20px;
+        background: #00f2ff; color: black; border: none;
+        font-size: 22px; font-weight: bold; cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .leave-btn:hover { background: white; transform: scale(1.02); }
+</style>
+
+
+
+
+
+
+
+
+<style>
+    /* Fullscreen Spray Mist */
+    #spray-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle, transparent 20%, rgba(0, 242, 255, 0.7) 100%);
+        z-index: 9998; opacity: 0; pointer-events: none;
+        transition: opacity 1.5s ease-in;
+    }
+
+    /* HET BREDE PANEEL - Nu met Border Radius */
+    #end-screen {
+        display: none;
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        
+        width: 850px; 
+        height: auto;
+        max-height: 85vh; 
+        
+        background: rgba(2, 10, 20, 0.98);
+        border: 4px solid #00f2ff;
+        border-radius: 30px; /* MOOIE RONDE HOEKEN */
+        padding: 40px;
+        color: white;
+        z-index: 10000;
+        flex-direction: column;
+        font-family: 'Arial Black', Gadget, sans-serif;
+        box-shadow: 0 0 60px rgba(0, 242, 255, 0.4);
+    }
+
+    #end-screen h1 {
+        font-size: 50px; margin: 0; color: #00f2ff;
+        text-align: center; text-transform: uppercase;
+        border-bottom: 3px solid #00f2ff;
+        padding-bottom: 10px;
+    }
+
+    .results-table {
+        width: 100%;
+        margin: 20px 0;
+        border-collapse: collapse;
+    }
+
+    .results-table tr { border-bottom: 1px solid rgba(0, 242, 255, 0.1); }
+    .results-table td { padding: 15px; font-size: 22px; }
+    
+    .rank-num { color: #00f2ff; width: 60px; font-weight: bold; }
+    .player-score { text-align: right; font-family: 'Courier New', monospace; color: #00f2ff; }
+
+    /* Highlight voor jou */
+    .row-me { background: rgba(0, 242, 255, 0.15); border-radius: 10px; }
+
+    .big-leave-btn {
+        width: 100%;
+        padding: 20px;
+        background: #00f2ff;
+        color: black;
+        border: none;
+        font-size: 24px;
+        font-weight: 900;
+        cursor: pointer;
+        text-transform: uppercase;
+        border-radius: 15px; /* Ronde hoeken voor de knop */
+        transition: 0.2s;
+    }
+
+    .big-leave-btn:hover { background: white; transform: scale(1.02); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #announcement-layer {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    pointer-events: none; /* Je kunt erdoorheen klikken */
+    text-align: center;
+    width: 100%;
+}
+
+#announcement-text {
+    font-family: 'Arial Black', sans-serif;
+    font-size: 40px;
+    color: #ffff00;
+    text-transform: uppercase;
+    text-shadow: 4px 4px 0px #000;
+    margin: 0;
+    display: none; /* Standaard onzichtbaar */
+    animation: popIn 0.3s ease-out;
+}
+
+/* Een klein animatie effectje als de tekst verschijnt */
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+#announcement-text {
+    transition: transform 0.1s ease-out;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+
+
+
+
+
+
+
+
+#kill-feed {
+    position: absolute;
+    right: 120px; 
+    top: 300px; 
+    width: 250px; /* Iets breder gemaakt voor grotere tekst */
+    height: 400px;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column; 
+    overflow: hidden;
+    z-index: 1000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: right;
+}
+
+.kill-msg {
+    background: rgba(0, 0, 0, 0.6); /* Iets donkerder voor beter contrast */
+    color: white;
+    margin-bottom: 8px; /* Meer ruimte tussen de berichten */
+    padding: 8px 15px; /* Meer vulling aan de binnenkant */
+    border-radius: 6px;
+    border-right: 5px solid #ff4444; 
+    font-size: 15px; /* GROTERE TEKST (was 13px/14px) */
+    font-weight: 500;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    animation: fadeOutRight 5s forwards; /* Iets langer in beeld laten */
+}
+/* Nieuwe animatie voor verschijnen vanaf rechts */
+@keyframes fadeOutRight {
+    0% { opacity: 0; transform: translateX(20px); }
+    10% { opacity: 1; transform: translateX(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(10px); }
+}
+
+
+
+#counter-image {
+    width: 100%;
+    height: auto;
+}
+
+#kill-score {
+    position: absolute;
+    top: 51%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Arial Black', sans-serif;
+    color: #32ff00;
+    font-size: 30px;   /* Extra groot getal */
+    text-shadow: 2px 2px 0px #000;
+}
+
+
+@keyframes killPop {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.5); color: #ffffff; }
+    100% { transform: translate(-50%, -50%) scale(1); color: #32ff00; }
+}
+
+/* De class die we via JS gaan toevoegen */
+.animate-kill {
+    animation: killPop 0.3s ease-out;
+}
+
+/* De animatie definitie */
+@keyframes killPop {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.5); color: #ffffff; }
+    100% { transform: translate(-50%, -50%) scale(1); color: rgba(0, 242, 255, 0.7); }
+}
+
+/* De class die we via JS gaan toevoegen */
+.animate-kill {
+    animation: killPop 0.3s ease-out;
+}
+
+
+
+
+        #leaderboard { 
+            position: absolute; top: 20px; right: 120px; 
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px);
+            padding: 15px 25px; border-radius: 12px; color: white; z-index: 5; 
+            border: 1px solid rgba(0, 242, 255, 0.7); min-width: 220px; display: none;
+        }
+        #leaderboard h3 { margin: 0 0 10px 0; color: rgba(0, 242, 255, 0.7); font-size: 14px; text-align: center; letter-spacing: 2px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /* Animation for the red glow pulse */
+@keyframes dangerPulse {
+    0% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.4); }
+}
+
+/* Animation for the UI appearing */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* The Trigger Button Style */
+#battle-leave-trigger {
+    position: fixed;
+    top: 20px;
+    left: 120px;
+    padding: 12px 25px;
+    background: rgba(20, 0, 0, 0.6);
+    border: 2px solid #ff4444;
+    color: #ff4444;
+    font-weight: 900;
+    font-family: 'Arial Black', sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 10001;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+    animation: dangerPulse 2s infinite ease-in-out;
+}
+
+#battle-leave-trigger:hover {
+    background: #ff4444;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(255, 68, 68, 1);
+}
+
+/* The Confirmation Box Style */
+.confirm-box {
+    background: linear-gradient(145deg, #020c1b, #05162d);
+    padding: 50px;
+    border: 3px solid #ff4444;
+    border-radius: 30px;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 68, 68, 0.2);
+    animation: slideDown 0.4s ease-out;
+}
+
+/* Styled Buttons inside UI */
+.ui-btn {
+    padding: 15px 40px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    border: none;
+}
+
+.btn-quit {
+    background: #ff4444;
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+}
+
+.btn-quit:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.2);
+}
+
+.btn-stay {
+    background: transparent;
+    border: 2px solid #00ff88 !important;
+    color: #00ff88;
+    margin-left: 15px;
+}
+
+.btn-stay:hover {
+    background: rgba(0, 255, 136, 0.1);
+    transform: translateY(-3px);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+
+    <div id="death-screen" class="ui-layer">
+    <h1 style="color: #ff4444; font-size: 48px;">YOU DIED</h1>
+    <p id="final-score" style="font-size: 24px; color: #aaa;">Army Lost!</p>
+    
+    <button id="revive-btn" style="width: 300px;">WATCH AD TO REVIVE</button>
+    
+<button class="secondary-btn" onclick="window.location.href='index.html'">LEAVE TO MENU</button>    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<button id="battle-leave-trigger">EXIT BATTLE </button>
+
+<div id="leave-confirm-ui" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 8, 22, 0.9); backdrop-filter: blur(12px); z-index: 20000; justify-content: center; align-items: center;">
+    <div class="confirm-box">
+        <h2 style="color: #ff4444; font-size: 40px; margin: 0; font-family: 'Arial Black', sans-serif; letter-spacing: 2px;">ABANDON BATTLE?</h2>
+        <p style="color: #66e0ff; font-size: 18px; margin-bottom: 40px; font-family: sans-serif; opacity: 0.8;">Warning: Your parasite army will be lost!</p>
+        
+        <div style="display: flex; justify-content: center;">
+            <button id="confirm-yes" class="ui-btn btn-quit">YES, ABANDON</button>
+            <button id="confirm-no" class="ui-btn btn-stay">NO, FIGHT ON</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="battle-death-menu" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; text-align:center; background:rgba(0,0,0,0.9); padding:40px; border:5px solid #00ffcc; border-radius:20px; color:white; font-family:Arial, sans-serif;">
+        <h1 style="color:#ff0000; font-size:48px; margin-bottom:10px;">ELIMINATED</h1>
+        <p style="font-size:20px; margin-bottom:30px;">Je bent al je hosts verloren!</p>
+        <button onclick="location.reload()" style="padding:15px 30px; font-size:24px; cursor:pointer; background:#00ffcc; border:none; border-radius:10px; margin-right:10px; font-weight:bold;">RESPAWN (3 Hosts)</button>
+        <button onclick="window.location.href='index.html'" style="padding:15px 30px; font-size:24px; cursor:pointer; background:#ff4444; border:none; border-radius:10px; color:white; font-weight:bold;">LEAVE MATCH</button>
+    </div>
+
+
+
+
+    <div id="announcement-layer">
+    <h2 id="announcement-text"></h2>
+    </div>
+
+
+
+
+    <div id="kill-feed"></div>
+
+
+
+
+    <div id="ui-overlay">
+        <div id="battle-timer">2:30</div>
+        <div id="warning-text">⚠️ ANTIBIOTIC SPRAY IN 5S! ⚠️</div>
+    </div>
+    <div id="leaderboard">
+        <h3 style="color:#00ffff; margin:0;">LEADERBOARD</h3>
+        <ul id="lb-list" style="list-style:none; padding:0;"></ul>
+    </div>
+
+    <div id="game-container"></div>
+
+<div id="flash-effect" class="flash-white"></div>
+<div id="spray-overlay"></div>
+
+<div id="spray-overlay"></div>
+
+<div id="end-screen">
+    <h1>MATCH OVER</h1>
+    <table class="results-table">
+        <tbody id="top-5-content">
+            </tbody>
+    </table>
+
+    <div id="my-final-stat" style="font-size: 26px; text-align: center; margin-bottom: 20px; border-top: 2px solid #00f2ff; padding-top: 20px;">
+        </div>
+
+    <button class="big-leave-btn" onclick="window.location.href='index.html'">
+        LEAVE MATCH
+    </button>
+</div>
+<div id="spray-cloud" class="spray-overlay"></div>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <script src="config.js"></script>
+    <script src="Host.js"></script>
+    <script src="PowerUp.js"></script>
+    <script src="Player.js"></script>
+    <script src="UIManager.js"></script> <script src="GameScene.js"></script>
+    <script src="main.js"></script>
+<<script>
+// We maken de countdown variabele globaal zodat we hem overal kunnen stoppen
+window.countdown = null;
+window.timeLeft = 150; 
+
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const playerName = params.get('name') || "Parasite";
+
+        if (typeof window.launchGame === "function") {
+            window.launchGame(playerName);
+            const canvas = document.querySelector('canvas');
+            if(canvas) canvas.style.display = "block";
+        }
+
+        startBattleTimer(); // We starten de timer via een aparte functie
+    }, 500);
+});
+
+// Functie om de timer te starten/hervatten
+function startBattleTimer() {
+    const timerDisplay = document.getElementById('battle-timer');
+    const warningText = document.getElementById('warning-text');
+
+    // Zorg dat er niet twee timers tegelijk lopen
+    if(window.countdown) clearInterval(window.countdown);
+
+    window.countdown = setInterval(() => {
+        window.timeLeft--;
+        let mins = Math.floor(window.timeLeft / 60);
+        let secs = window.timeLeft % 60;
+        
+        if (timerDisplay) {
+            timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            if (window.timeLeft <= 5 && window.timeLeft > 0) {
+                timerDisplay.classList.add('danger'); 
+                document.body.classList.add('spray-active');
+                if (warningText) {
+                    warningText.style.display = "block";
+                    warningText.classList.add('active-flash');
+                    warningText.innerText = `⚠️ ANTIBIOTIC SPRAY IN ${window.timeLeft}S! ⚠️`;
+                }
+            } else if (window.timeLeft > 5) {
+                if (warningText) warningText.style.display = "none";
+                timerDisplay.classList.remove('danger');
+                document.body.classList.remove('spray-active');
+            }
+        }
+
+        if (window.timeLeft <= 0) {
+            clearInterval(window.countdown);
+            if (warningText) warningText.style.display = "none";
+            finishBattle();
+        }
+    }, 1000);
+}
+
+function finishBattle() {
+    if (!window.game || !window.game.scene || !window.game.scene.scenes[0]) return;
+    const scene = window.game.scene.scenes[0];
+    if (scene.physics && scene.physics.pause) scene.physics.pause();
+    const spray = document.getElementById('spray-overlay');
+    if(spray) spray.style.opacity = "1";
+
+    let participants = [];
+    if (scene.player) participants.push(scene.player);
+    if (scene.bots) participants = participants.concat(scene.bots);
+
+    let entities = participants.map(e => {
+        let pName = e.name || (e === scene.player ? "Parasite" : "Bot");
+        let totalPower = 0;
+        if (e.infectedHosts && e.infectedHosts.length > 0) {
+            e.infectedHosts.forEach(h => {
+                totalPower += (typeof h.getPowerValue === "function") ? h.getPowerValue() : 1;
+            });
+        } else {
+            totalPower = e.score || 0;
+        }
+        return { name: pName, power: Math.floor(totalPower), isMe: e === scene.player };
+    });
+
+    entities.sort((a, b) => b.power - a.power);
+    let html = "";
+    entities.slice(0, 5).forEach((p, i) => {
+        html += `<tr class="${p.isMe ? 'row-me' : ''}">
+            <td class="rank-num">#${i + 1}</td>
+            <td style="text-transform: uppercase; font-weight: bold; text-align: center;">${p.name}</td>
+            <td class="player-score" style="text-align: right; color: #00f2ff; font-family: monospace;">${p.power}</td>
+        </tr>`;
+    });
+
+    const myData = entities.find(p => p.isMe) || { power: 0 };
+    const myRank = entities.findIndex(p => p.isMe) + 1;
+
+    setTimeout(() => {
+        document.getElementById('top-5-content').innerHTML = html;
+        document.getElementById('my-final-stat').innerHTML = `YOUR FINAL RANK: #${myRank} | ARMY POWER: ${myData.power}`;
+        document.getElementById('end-screen').style.display = 'flex';
+        if(document.getElementById('battle-timer')) document.getElementById('battle-timer').style.display = 'none';
+        if(document.getElementById('warning-text')) document.getElementById('warning-text').style.display = 'none';
+    }, 1500);
+}
+
+// --- LEAVE UI LOGIC ---
+const leaveTrigger = document.getElementById('battle-leave-trigger');
+const leaveUI = document.getElementById('leave-confirm-ui');
+const confirmYes = document.getElementById('confirm-yes');
+const confirmNo = document.getElementById('confirm-no');
+
+leaveTrigger.onclick = () => {
+    leaveUI.style.display = 'flex';
+    
+    // 1. Pauzeer de game
+    if (window.game && window.game.scene) {
+        window.game.scene.scenes.forEach(s => s.scene.pause());
+    }
+
+    // 2. STOP DE TIMER (Bevriezen)
+    if (window.countdown) {
+        clearInterval(window.countdown);
+        window.countdown = null;
+    }
+};
+
+confirmNo.onclick = () => {
+    leaveUI.style.display = 'none';
+    
+    // 1. Hervat de game
+    if (window.game && window.game.scene) {
+        window.game.scene.scenes.forEach(s => s.scene.resume());
+    }
+
+    // 2. HERSTART DE TIMER (Hervatten vanaf waar we waren)
+    startBattleTimer();
+};
+
+confirmYes.onclick = () => {
+    window.location.href = 'index.html';
+};
+</script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

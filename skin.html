@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Evolution Lab - Parasite.io</title>
+    <link rel="icon" type="image/png" href="skin2.png">
+
+    <style>
+
+
+
+
+
+                button, .skin-item, .lab-btn {
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            will-change: transform;
+        }
+
+        button:hover, .skin-item:hover {
+            transform: scale(1.05); /* Iets groter als je eroverheen zweeft */
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        body {
+            background: #050505;
+            color: #00ff88;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 { font-size: 3rem; text-shadow: 0 0 15px #00ff88; margin-bottom: 10px; }
+
+        .skin-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            gap: 20px;
+            margin: 30px;
+        }
+
+        .skin-box {
+            border: 2px solid #222;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .skin-box:hover { border-color: #00ff88; transform: translateY(-5px); }
+        .skin-box.selected { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+
+        /* Fixed image path by removing assets/ */
+        .skin-box img { width: 80px; height: 80px; display: block; margin: 0 auto 10px; object-fit: contain; }
+
+        .btn-play {
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            background: #00ff88;
+            color: black;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            transition: 0.3s;
+        }
+
+        .btn-play:hover { transform: scale(1.05); box-shadow: 0 0 30px #00ff88; }
+
+        /* Positioned the X closer as requested */
+        .back-x {
+            position: fixed;
+            top: 40px;
+            right: 60px;
+            font-size: 45px;
+            color: #00ff88;
+            text-decoration: none;
+            font-family: sans-serif;
+            transition: 0.3s;
+            z-index: 1000;
+        }
+
+        .back-x:hover { color: #fff; transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <h1>EVOLUTION LAB</h1>
+    
+    <div class="skin-grid" id="grid"></div>
+
+    <button class="btn-play" onclick="goGame()">START INFECTION</button>
+
+    <a href="#" class="back-x" onclick="goGame()">✕</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+<script>
+    let selected = localStorage.getItem('selectedSkin') || 'skin1';
+    const totalSkins = 5;
+    const grid = document.getElementById('grid');
+    
+    // Geluid instellen voor deze pagina
+    const labClickSound = new Audio('clickpop.mp3');
+
+    // Functie voor de klik-animatie
+    function playClickEffect(element) {
+        // Geluid
+        const clone = labClickSound.cloneNode();
+        clone.volume = 0.4;
+        clone.play().catch(() => {});
+
+        // Squish Animatie
+        element.style.transition = "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        element.style.transform = "scale(0.92)";
+        setTimeout(() => {
+            element.style.transform = "scale(1)";
+        }, 100);
+    }
+
+    // Generate the skin boxes
+    for(let i = 1; i <= totalSkins; i++) {
+        const skinId = `skin${i}`;
+        const box = document.createElement('div');
+        box.className = `skin-box ${selected === skinId ? 'selected' : ''}`;
+        box.innerHTML = `
+            <img src="skin${i}.png" alt="Skin ${i}">
+            <span>TYPE 0${i}</span>
+        `;
+
+        box.onclick = (e) => {
+            playClickEffect(box); // Start animatie + geluid
+            document.querySelectorAll('.skin-box').forEach(b => b.classList.remove('selected'));
+            box.classList.add('selected');
+            selected = skinId;
+            localStorage.setItem('selectedSkin', selected);
+        };
+        grid.appendChild(box);
+    }
+
+    // Locked box
+    const soon = document.createElement('div');
+    soon.className = 'skin-box';
+    soon.style.opacity = '0.3';
+    soon.innerHTML = `<div style="height:80px; line-height:80px;">?</div><span>LOCKED</span>`;
+    soon.onclick = () => playClickEffect(soon);
+    grid.appendChild(soon);
+
+    function goGame() {
+        // Geef de knop zelf ook een effect voor we weggaan
+        const btn = document.querySelector('.btn-play');
+        playClickEffect(btn);
+        
+        setTimeout(() => {
+            localStorage.setItem('selectedSkin', selected);
+            window.location.href = 'index.html'; 
+        }, 100);
+    }
+</script>
+</body>
+</html>

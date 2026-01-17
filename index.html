@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parasite.io</title>
+    <link rel="icon" type="image/png" href="skin2.png">
+
+
+
+<style>
+
+    .leave-btn {
+        background: rgba(255, 68, 68, 0.2) !important;
+        border: 2px solid #ff4444 !important;
+        color: #ff4444 !important;
+        margin-top: 15px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .leave-btn:hover {
+        background: #ff4444 !important;
+        color: #fff !important;
+    }
+</style>
+
+
+<style>#pause-screen {
+    display: none; /* Default hidden */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(2, 12, 27, 0.85); /* Semi-transparent dark blue */
+    backdrop-filter: blur(10px);
+    
+    /* CRITICAL: Must be higher than the game canvas */
+    z-index: 99999 !important; 
+    
+    /* Layout */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: all; /* Ensures you can click the buttons */
+}
+
+/* This class will be toggled by JavaScript */
+#pause-screen.ui-active {
+    display: flex !important;
+}</style>
+
+
+
+
+
+
+
+
+
+
+    <style>
+        #pause-toggle {
+            display: none; /* Keep hidden on home screen */
+            position: absolute; 
+            top: 25px; 
+            left: 120px;
+            width: 50px; 
+            height: 50px; 
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            color: #00ff88;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+            justify-content: center; /* Use these to center the || icon */
+            align-items: center;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px); /* For Safari */
+
+        }
+
+        /* Quit Button Styling */
+        .quit-btn {
+            background: rgba(255, 50, 50, 0.2);
+            border: 2px solid #ff3232;
+            color: #ff3232;
+            margin-top: 15px;
+        }
+        .quit-btn:hover {
+            background: #ff3232;
+            color: #fff;
+    }
+
+
+
+
+
+
+    </style>
+
+
+
+<style>
+
+
+#revive-btn {
+    background: linear-gradient(135deg, #00ff88 0%, #00bdff 100%);
+    color: #020c1b;
+    border: none;
+    padding: 20px 50px;
+    font-size: 24px;
+    font-weight: 900;
+    border-radius: 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    
+    /* The Glow Effect */
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4), 
+                inset 0 0 10px rgba(255, 255, 255, 0.5);
+    
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: button-pulse 2s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover State: Makes it grow and glow brighter */
+#revive-btn:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.6);
+    filter: brightness(1.1);
+}
+
+/* Active State: Shrinks when clicked */
+#revive-btn:active {
+    transform: scale(0.95);
+}
+
+/* The Pulse Animation */
+@keyframes button-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(0, 255, 136, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+        /* Container for the full-screen overlay */
+    #death-screen, #pause-screen {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(2, 12, 27, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    /* The box containing the text and buttons */
+    .ui-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+    }
+
+    /* Button Layout */
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    /* Green Revive/Resume Button */
+    .primary-btn {
+        background: #00ff88;
+        color: #020c1b;
+        border: none;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .primary-btn:hover {
+        transform: scale(1.05);
+        background: #00db75;
+    }
+
+    /* Red/Transparent Quit Button */
+    .secondary-btn {
+        background: transparent;
+        color: #ff4444;
+        border: 2px solid #ff4444;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .secondary-btn:hover {
+        background: #ff4444;
+        color: white;
+    }
+</style>
+
+
+
+
+
+
+
+
+
+    <style>
+
+        /* Power-up HUD at Top Center */
+        #powerup-hud {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .pu-timer {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ff88;
+            padding: 8px 15px;
+            border-radius: 5px;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: none; /* Hidden by default */
+        }
+    </style>
+
+
+
+<style>
+#pause-screen {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, rgba(2, 12, 27, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Keeps it on top of everything */
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Pause Title Styling */
+#pause-screen h1 {
+    font-size: 60px;
+    letter-spacing: 10px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Green Resume Button */
+#resume-btn {
+    background: linear-gradient(45deg, #00ff88, #00bd65);
+    color: #020c1b;
+    border: none;
+    padding: 15px 60px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#resume-btn:hover { transform: scale(1.1); }
+
+/* Red Quit Button */
+.leave-btn {
+    background: rgba(255, 51, 51, 0.1);
+    border: 2px solid #ff3333;
+    color: #ff3333;
+    padding: 10px 40px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.leave-btn:hover {
+    background: #ff3333;
+    color: white;
+}
+</style>
+
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #010816; font-family: 'Segoe UI', sans-serif; }
+
+
+
+
+
+        #top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: rgba(18, 18, 18, 0.7); /* Translucent */
+        border-bottom: 2px solid #00ff88;
+        z-index: 100;
+    }
+
+
+
+
+
+
+
+
+
+
+
+        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .ui-layer { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
+        .ui-active { display: flex; justify-content: center; align-items: center; pointer-events: auto; }
+        #menu-screen { background: radial-gradient(circle, rgba(16, 33, 62, 0.95) 0%, rgba(2, 12, 27, 1) 100%); flex-direction: column; }
+        h1 { color: #00ff88; font-size: 80px; margin-bottom: 30px; font-weight: 900; text-shadow: 0 0 20px rgba(0, 255, 136, 0.6); letter-spacing: 10px; }
+        input { padding: 20px; font-size: 24px; border-radius: 12px; border: 2px solid #00ff88; background: rgba(0, 0, 0, 0.4); color: white; text-align: center; width: 350px; margin-bottom: 25px; pointer-events: auto; }
+        button { padding: 20px 80px; font-size: 28px; border-radius: 12px; border: none; background: #00ff88; color: #020c1b; font-weight: 900; cursor: pointer; pointer-events: auto; }
+        #leaderboard { 
+            position: absolute; top: 20px; right: 120px; 
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px);
+            padding: 15px 25px; border-radius: 12px; color: white; z-index: 5; 
+            border: 1px solid rgba(0, 255, 136, 0.4); min-width: 220px; display: none;
+        }
+        #leaderboard h3 { margin: 0 0 10px 0; color: #00ff88; font-size: 14px; text-align: center; letter-spacing: 2px; }
+        #lb-list { list-style: none; padding: 0; margin: 0; }
+        .lb-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .lb-name { font-weight: bold; }
+        .lb-score { color: #00ff88; font-weight: bold; }
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+/* De basis heb je al, we voegen dit specifiek toe voor de tutorial */
+.tuto-btn { 
+    position: absolute;
+    right: 14%;
+    background: #00ff88;
+    color: #000;
+    text-decoration: none;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+.tuto-btn:hover {
+
+    transform: scale(1.05);
+    background: #fff;
+}
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+#top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(18, 18, 18, 0.9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border-bottom: 2px solid #00ff88;
+    z-index: 100;
+}
+
+.logo {
+    color: #00ff88;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.lab-btn {
+    background: #00ff88;
+    color: #000;
+    text-decoration: none;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+.lab-btn:hover {
+    transform: scale(1.05);
+    background: #fff;
+}
+
+
+#game-container { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 1; 
+    /* REMOVED margin-top: 60px; */
+}
+
+
+
+
+
+
+
+
+    #announcement-layer {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    pointer-events: none; /* Je kunt erdoorheen klikken */
+    text-align: center;
+    width: 100%;
+}
+
+#announcement-text {
+    font-family: 'Arial Black', sans-serif;
+    font-size: 40px;
+    color: #ffff00;
+    text-transform: uppercase;
+    text-shadow: 4px 4px 0px #000;
+    margin: 0;
+    display: none; /* Standaard onzichtbaar */
+    animation: popIn 0.3s ease-out;
+}
+
+/* Een klein animatie effectje als de tekst verschijnt */
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+#announcement-text {
+    transition: transform 0.1s ease-out;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+
+
+
+
+
+
+
+
+#kill-feed {
+    position: absolute;
+    right: 120px; 
+    top: 300px; 
+    width: 250px; /* Iets breder gemaakt voor grotere tekst */
+    height: 400px;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column; 
+    overflow: hidden;
+    z-index: 1000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: right;
+}
+
+.kill-msg {
+    background: rgba(0, 0, 0, 0.6); /* Iets donkerder voor beter contrast */
+    color: white;
+    margin-bottom: 8px; /* Meer ruimte tussen de berichten */
+    padding: 8px 15px; /* Meer vulling aan de binnenkant */
+    border-radius: 6px;
+    border-right: 5px solid #ff4444; 
+    font-size: 15px; /* GROTERE TEKST (was 13px/14px) */
+    font-weight: 500;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    animation: fadeOutRight 5s forwards; /* Iets langer in beeld laten */
+}
+/* Nieuwe animatie voor verschijnen vanaf rechts */
+@keyframes fadeOutRight {
+    0% { opacity: 0; transform: translateX(20px); }
+    10% { opacity: 1; transform: translateX(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(10px); }
+}
+
+
+
+
+
+button, .skin-item, .lab-btn {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    will-change: transform;
+}
+
+button:hover, .skin-item:hover {
+    transform: scale(1.05); /* Iets groter als je eroverheen zweeft */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#kill-counter-wrapper {
+    display: none !important; /* DIT MOET BOVENAAN BLIJVEN */
+    position: fixed;
+    top: 20px;
+    right: 370px;
+    width: 160px;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+#counter-image {
+    width: 100%;
+    height: auto;
+}
+
+#kill-score {
+    position: absolute;
+    top: 51%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Arial Black', sans-serif;
+    color: #32ff00;
+    font-size: 30px;   /* Extra groot getal */
+    text-shadow: 2px 2px 0px #000;
+}
+
+
+@keyframes killPop {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.5); color: #ffffff; }
+    100% { transform: translate(-50%, -50%) scale(1); color: #32ff00; }
+}
+
+/* De class die we via JS gaan toevoegen */
+.animate-kill {
+    animation: killPop 0.3s ease-out;
+}
+
+/* De animatie definitie */
+@keyframes killPop {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.5); color: #ffffff; }
+    100% { transform: translate(-50%, -50%) scale(1); color: #32ff00; }
+}
+
+/* De class die we via JS gaan toevoegen */
+.animate-kill {
+    animation: killPop 0.3s ease-out;
+}
+
+
+
+
+
+
+
+#start-btn {
+    /* ... je bestaande styling ... */
+    
+    /* Activeer de pulse animatie */
+    animation: 0.4 ease-in-out;
+    
+    /* Voor het glans effect maken we een gradient achtergrond */
+    background: linear-gradient(90deg, #00ff88, #80ffc4, #00ff88) !important;
+    background-size: 200% auto !important;
+}
+
+#start-btn:hover {
+    /* Als je eroverheen gaat, versnelt de glans */
+    transform: scale(1.1) !important;
+
+}
+
+
+
+
+
+/* De pulse animatie voor de schaduw */
+@keyframes infectPulse {
+    0% {
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        transform: scale(1);
+    }
+}
+
+/* Een subtiele glans die over de knop glijdt */
+@keyframes shimmery {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+
+
+
+
+
+
+
+#menu-screen:not(.ui-active) {
+    pointer-events: none;
+    opacity: 0;
+    z-index: -1 !important;
+}
+
+canvas {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Game moet op laag 1 */
+}
+
+
+
+
+
+.infect-btn {
+    /* Formaat - Maak ze hier exact even groot */
+    width: 350px !important;
+    height: 70px !important; /* Vaste hoogte voor uniformiteit */
+    
+    /* Tekst centreren (Cruciaal voor de link!) */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    
+    /* Styling */
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    border-radius: 12px;
+    cursor: pointer;
+    border: none;
+    text-transform: uppercase;
+    transition: transform 0.1s ease;
+    margin: 0 auto; /* Centreer in de container */
+}
+
+/* Specifieke kleuren voor de Battle link */
+#battle-btn {
+    background: #00ffff !important;
+    color: #020c1b !important;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+/* Specifieke kleuren voor de Infect knop */
+#start-btn {
+    background: #00ff88 !important;
+    color: #020c1b !important;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+}
+
+.infect-btn:hover {
+    transform: scale(1.05);
+}
+
+
+
+
+
+
+
+/* De bewegende achtergrond container */
+.bg-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #010816; /* Jouw basiskleur */
+    z-index: -1; /* Achter alles */
+    overflow: hidden;
+}
+
+/* De bewegende Grid */
+.grid {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    bottom: -50%;
+    left: -50%;
+    background-image: 
+        linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    transform: perspective(500px) rotateX(45deg);
+    animation: move-grid 10s linear infinite;
+}
+
+/* Zwevende deeltjes (Bacteria effect) */
+.particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle, rgba(0, 255, 136, 0.2) 1px, transparent 1px);
+    background-size: 100px 100px;
+    animation: drift 20s linear infinite;
+}
+
+/* Animatie voor de Grid (geeft diepte en beweging) */
+@keyframes move-grid {
+    0% { transform: perspective(500px) rotateX(45deg) translateY(0); }
+    100% { transform: perspective(500px) rotateX(45deg) translateY(50px); }
+}
+
+/* Animatie voor de bacteriën */
+@keyframes drift {
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(-1000px) rotate(360deg); }
+}
+
+/* Overlay om het menu leesbaar te houden */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, transparent 20%, rgba(1, 8, 22, 0.8) 80%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+
+
+
+#menu-screen img {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 136, 0.5));
+    animation: logo-float 4s ease-in-out infinite;
+}
+
+@keyframes logo-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+
+
+
+
+
+
+
+<div id="kill-counter-wrapper" style="display: none;">
+    <img src="counter.png" id="counter-image">
+    <span id="kill-score">0</span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="announcement-layer">
+    <h2 id="announcement-text"></h2>
+</div>
+
+
+
+    
+
+
+
+
+
+
+
+    <div id="death-screen" class="ui-layer">
+    <h1 style="color: #ff4444; font-size: 48px;">YOU DIED</h1>
+    <p id="final-score" style="font-size: 24px; color: #aaa;">Army Lost!</p>
+    
+    <button id="revive-btn" style="width: 300px;">WATCH AD TO REVIVE</button>
+    
+    <button class="leave-btn" onclick="window.location.reload()">LEAVE TO MENU</button>
+    </div>
+
+
+<div class="bg-animation">
+    <div class="grid"></div>
+    <div class="particles"></div>
+</div>
+<div class="menu-overlay"></div>
+
+
+
+<div id="top-bar">
+    <div class="logo">PARASITE.IO</div>
+    
+    <a href="tuto.html" class="tuto-btn">
+        <span class="icon">📖</span> TUTORIAL
+    </a>
+
+    <a href="skin.html" class="lab-btn">
+        <span class="icon">🧬</span> EVOLUTION LAB
+    </a>
+</div>
+
+
+
+    <div id="pause-screen" class="ui-layer">
+    <h1 style="color: #fff; text-shadow: 0 0 10px #00ff88;">GAME PAUSED</h1>
+    <button id="resume-btn">RESUME</button>
+    <button id="quit-btn" class="quit-btn">LEAVE GAME</button>
+    </div>
+
+
+    <div id="powerup-hud">
+    <div id="timer-speed" class="pu-timer">⚡ SPEED: <span id="val-speed">0</span>s</div>
+    <div id="timer-magnet" class="pu-timer">🧲 MAGNET: <span id="val-magnet">0</span>s</div>
+    </div>
+
+
+
+
+<div id="menu-screen" class="ui-layer ui-active">
+    <img src="logo.png" style="width: 300px;">
+    <h1>PARASITE.IO</h1>
+    <input type="text" id="username" placeholder="Enter Nickname" maxlength="12">
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        <button id="start-btn" class="infect-btn">INFECT!! (Endless)</button>
+        
+        <a href="battle.html" id="battle-btn" class="infect-btn">
+            BATTLE (2:30)
+        </a>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+
+
+    const startBtn = document.getElementById('start-btn');
+    const onlineBtn = document.getElementById('online-btn');
+    const usernameInput = document.getElementById('username');
+
+    function goToGame(mode) {
+        const name = usernameInput.value || "Player";
+        // We sturen de speler naar game.html en geven de info mee in de link
+        window.location.href = `game.html?name=${encodeURIComponent(name)}&mode=${mode}`;
+    }
+
+    startBtn.onclick = () => goToGame('OFFLINE');
+
+</script>
+
+
+
+    <div id="leaderboard">
+        <h3>TOP INFECTORS</h3>
+        <ul id="lb-list"></ul>
+    </div>
+
+        <div id="pause-screen" class="ui-layer">
+        <h1 style="color: #fff;">PAUSED</h1>
+        <button id="resume-btn">RESUME</button>
+    </div>
+
+    <div id="death-screen" class="ui-layer">
+        <div class="status-text">EXTINCT!</div>
+        <p style="color: white; margin-bottom: 20px;">You lost all your hosts.</p>
+        <button id="start-btn" class="revive-btn">REVIVE (Spawn 3)</button>
+    </div>
+
+    <button id="pause-toggle">II</button>
+
+
+
+
+
+
+    <div id="kill-feed"></div>
+
+
+
+
+
+
+<script>
+    const startBtn = document.getElementById('start-btn');
+    
+    startBtn.addEventListener('click', () => {
+        // We maken een browser-audio object dat DIRECT speelt
+        if (!window.menuMusic) {
+            window.menuMusic = new Audio('menu.mp3');
+            window.menuMusic.loop = true;
+            window.menuMusic.volume = 0.4;
+            window.menuMusic.play().catch(e => console.log("Audio klik fix:", e));
+        }
+    });
+</script>
+
+
+<script>
+    // We maken een globale variabele die de browser begrijpt
+    window.menuMusic = new Audio('menu.mp3');
+    window.menuMusic.loop = true;
+    window.menuMusic.volume = 0.4;
+
+    // Zodra de gebruiker ergens op de pagina klikt (interactie), start de muziek
+    document.addEventListener('click', function startMuziekOpMenu() {
+        if (window.menuMusic.paused) {
+            window.menuMusic.play().catch(e => console.log("Wacht op interactie..."));
+        }
+        // Verwijder de listener na de eerste klik om dubbele muziek te voorkomen
+        document.removeEventListener('click', startMuziekOpMenu);
+    }, { once: true });
+</script>
+
+
+
+
+    <script>
+    window.menuMusic = new Audio('menu.mp3');
+    window.menuMusic.loop = true;
+    
+    // Start muziek bij de eerste klik op de pagina
+    document.addEventListener('click', () => {
+        if(window.menuMusic.paused) window.menuMusic.play();
+    }, { once: true });
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="UIManager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <script src="config.js"></script>
+    <script src="Host.js"></script>
+    <script src="PowerUp.js"></script>
+    <script src="Player.js"></script>
+    <script src="GameScene.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

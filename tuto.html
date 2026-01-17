@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parasite.io Tutorial</title>    
+<style>
+        :root {
+            --neon: #00ff88;
+            --danger: #ff0044;
+            --gold: #ffff00;
+            --bg: #000814;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- DE BEWEGENDE GRID ACHTERGROND --- */
+        .grid-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            perspective: 600px;
+            z-index: -1;
+            background: var(--bg);
+        }
+
+        .grid-moving {
+            position: absolute;
+            width: 200%; height: 200%;
+            top: -50%; left: -50%;
+            background-image: 
+                linear-gradient(var(--neon) 1px, transparent 1px), 
+                linear-gradient(90deg, var(--neon) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            transform: rotateX(45deg);
+            animation: moveGrid 10s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            from { background-position: 0 0; }
+            to { background-position: 0 100%; }
+        }
+
+        /* --- UI ELEMENTEN --- */
+        h1 {
+            font-size: 3.5rem;
+            color: var(--neon);
+            text-shadow: 0 0 20px var(--neon);
+            letter-spacing: 12px;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .section {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            margin-bottom: 30px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            border-radius: 5px;
+            animation: slideIn 0.6s ease-out;
+            position: relative;
+        }
+
+        .info-content { flex: 2; }
+        
+        /* Image Container voor jouw PNG's */
+        .visual-box { 
+            flex: 1; 
+            background: rgba(0,0,0,0.5); 
+            border: 2px solid var(--neon); 
+            height: 180px;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            border-radius: 8px;
+            box-shadow: inset 0 0 15px var(--neon);
+        }
+
+        .visual-box img {
+            max-width: 80%;
+            max-height: 80%;
+            filter: drop-shadow(0 0 10px var(--neon));
+        }
+
+        h2 { color: var(--neon); margin-top: 0; font-size: 1.8rem; text-transform: uppercase; }
+        p { line-height: 1.6; color: #eee; font-size: 1.1rem; }
+        
+        .highlight { 
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid var(--neon);
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: var(--neon);
+            border: none;
+            color: #000;
+            padding: 20px 60px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 30px;
+            border-radius: 50px;
+            box-shadow: 0 0 20px var(--neon);
+            text-transform: uppercase;
+        }
+
+        .btn:hover { 
+            transform: scale(1.1);
+            box-shadow: 0 0 40px var(--neon);
+            background: #fff;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+
+
+
+
+
+<style>:root {
+    --neon: #00ff88;
+    --danger: #ff0044;
+    --gold: #ffff00;
+    --bg: #000814;
+    --glass: rgba(0, 255, 136, 0.05);
+}
+
+body {
+    margin: 0;
+    padding: 40px 20px;
+    background: var(--bg);
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* --- MOVING GRID BACKGROUND --- */
+.grid-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    perspective: 600px;
+    z-index: -1;
+}
+
+.grid-moving {
+    position: absolute;
+    width: 200%; height: 200%;
+    top: -50%; left: -50%;
+    background-image: 
+        linear-gradient(var(--neon) 1px, transparent 1px), 
+        linear-gradient(90deg, var(--neon) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.1;
+    transform: rotateX(45deg);
+    animation: moveGrid 10s linear infinite;
+}
+
+@keyframes moveGrid {
+    from { background-position: 0 0; }
+    to { background-position: 0 100%; }
+}
+
+/* --- TITEL --- */
+h1 {
+    font-size: 3.5rem;
+    color: var(--neon);
+    text-shadow: 0 0 10px var(--neon), 0 0 40px rgba(0, 255, 136, 0.5);
+    letter-spacing: 12px;
+    margin-bottom: 50px;
+    transition: transform 0.3s ease;
+}
+
+h1:hover {
+    transform: scale(1.05);
+}
+
+/* --- THE CARDS (SECTIONS) --- */
+.section {
+    width: 100%;
+    max-width: 1000px;
+    background: rgba(0, 20, 40, 0.7);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    margin-bottom: 30px;
+    padding: 30px;
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    border-radius: 12px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth bounce effect */
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}
+
+/* CARD HOVER EFFECT */
+.section:hover {
+    transform: translateY(-10px) scale(1.02); /* Lifts the card up */
+    background: rgba(0, 30, 60, 0.9);
+    border-color: var(--neon);
+    box-shadow: 0 15px 30px rgba(0, 255, 136, 0.2), 0 0 10px rgba(0, 255, 136, 0.1);
+}
+
+/* Reflection light effect on hover */
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: 0.5s;
+}
+
+.section:hover::before {
+    left: 100%;
+}
+
+/* --- IMAGE BOX HOVER --- */
+.visual-box { 
+    flex: 1; 
+    background: rgba(0,0,0,0.6); 
+    border: 2px solid rgba(0, 255, 136, 0.3); 
+    height: 180px;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.section:hover .visual-box {
+    border-color: var(--neon);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.visual-box img {
+    max-width: 70%;
+    max-height: 70%;
+    filter: drop-shadow(0 0 5px var(--neon));
+    transition: all 0.5s ease;
+}
+
+/* Image pulses when you hover the card */
+.section:hover .visual-box img {
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 0 15px var(--neon));
+}
+
+/* --- TEXT STYLES --- */
+h2 { color: var(--neon); margin-top: 0; font-size: 1.8rem; text-transform: uppercase; transition: 0.3s; }
+.section:hover h2 { letter-spacing: 2px; }
+
+p { line-height: 1.6; color: #eee; font-size: 1.1rem; }
+
+.highlight { 
+    background: rgba(0, 255, 136, 0.05);
+    border-left: 4px solid var(--neon);
+    padding: 10px 15px;
+    margin: 15px 0;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.section:hover .highlight {
+    background: rgba(0, 255, 136, 0.15);
+    padding-left: 25px; /* Text slides to the right a bit */
+}
+
+/* --- START BUTTON --- */
+.btn {
+    background: transparent;
+    border: 2px solid var(--neon);
+    color: var(--neon);
+    padding: 22px 70px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 30px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover { 
+    color: #000;
+    box-shadow: 0 0 50px var(--neon);
+    letter-spacing: 5px;
+}
+
+/* Fill effect on hover */
+.btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 0%;
+    background: var(--neon);
+    z-index: -1;
+    transition: all 0.3s ease;
+}
+
+.btn:hover::after {
+    height: 100%;
+}</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+<div class="grid-container">
+    <div class="grid-moving"></div>
+</div>
+
+
+<h1>PARASITE TUTORIAL</h1>
+
+
+<div class="section">
+    <div class="info-content">
+        <h2>01. MOVEMENT</h2>
+        <p>Your swarm follows your <strong>Mouse Cursor</strong>. The larger your army, the more weight it carries.</p>
+        <div class="highlight">Control the flow: Move in circles to keep your hosts tight and protected.</div>
+    </div>
+    <div class="visual-box">
+        <img src="skin1.png" alt="Player Skin">
+    </div>
+</div>
+
+<div class="section" style="border-right: 5px solid #00ffff;">
+    <div class="info-content">
+        <h2>02. EVOLUTION</h2>
+        <p>Merging is the key to dominance. When you gather enough hosts of the same level, they evolve.</p>
+        <div class="highlight">7x Level 1 Hosts ➔ 1x Level 2 Host</div>
+        <p>Level 2 hosts provide <strong>Increased Infection Range</strong> and better swarm defense.</p>
+    </div>
+    <div class="visual-box">
+        <img src="lvl2.png" alt="Evolution" style="max-width: 80%; max-height: 70%; transform: scale(1.5);">
+    </div>
+</div>
+
+<div class="section" style="border-right: 5px solid var(--gold);">
+    <div class="info-content">
+        <h2>03. POWER-UPS</h2>
+        <p>Scan the arena for tactical advantages:</p>
+        <p>⚡ <strong>SPEED X2:</strong> Doubles your movement speed (10s).</p>
+        <p>🛡️ <strong>SHIELD:</strong> Protects your hosts from being stolen.</p>
+        <p>☢️ <strong>NUKER:</strong> Instantly infects all nearby neutral hosts.</p>
+    </div>
+    <div class="visual-box">
+        <img src="speed.png" alt="Power-up">
+    </div>
+</div>
+
+<div class="section" style="border-right: 5px solid var(--danger);">
+    <div class="info-content">
+        <h2>04. COMBAT SCANNER</h2>
+        <p>Check the dots above enemies to determine threat levels:</p>
+        <p><span style="color: var(--neon);">● GREEN DOT:</span> Target is WEAK. <strong>ENGAGE!</strong></p>
+        <p><span style="color: var(--danger);">● RED DOT:</span> Target is DEADLY. <strong>EVADE!</strong></p>
+        <div class="highlight">Steal hosts by overlapping your infection radius with theirs.</div>
+    </div>
+    <div class="visual-box">
+    <img src="dot.png" alt="Enemy Scan" style="max-width: 80%; max-height: 70%; transform: scale(1.5);">    </div>
+</div>
+
+<button class="btn" onclick="window.location.href='index.html'">Back To Menu</button>
+
+</body>
+</html>
